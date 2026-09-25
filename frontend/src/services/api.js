@@ -1,5 +1,14 @@
-// PulseVote API Client Service
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// My Vote API Client Service
+const rawBaseUrl = import.meta.env.VITE_API_URL || '';
+// Strip trailing slash if present to avoid '//api/...' double slash issues
+const BASE_URL = rawBaseUrl.trim().replace(/\/+$/, '') || (import.meta.env.DEV ? 'http://localhost:8080' : '');
+
+if (import.meta.env.PROD && (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.includes('localhost'))) {
+  console.warn(
+    '[My Vote] Notice: VITE_API_URL is unset or using localhost in production build.\n' +
+    'To connect your Vercel deployment to Render, set VITE_API_URL in your Vercel Project Environment Variables to your Render backend URL (e.g. https://myvote-backend.onrender.com).'
+  );
+}
 
 // Helper for HTTP requests
 async function request(endpoint, options = {}) {
@@ -14,10 +23,20 @@ async function request(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    // Catch browser "Failed to fetch" (network/CORS/offline)
+    const targetUrl = BASE_URL || window.location.origin;
+    console.error(`[My Vote API] Network failure attempting to reach ${targetUrl}${endpoint}:`, err);
+    throw new Error(
+      `Unable to connect to backend server at ${targetUrl}. Please ensure the backend is running and CORS is configured.`
+    );
+  }
 
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const data = isJson ? await response.json() : null;

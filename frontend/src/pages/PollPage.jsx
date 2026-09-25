@@ -112,7 +112,7 @@ export default function PollPage() {
             {error || "The poll you're looking for does not exist or has been deleted."}
           </p>
           <Link to="/" className="btn btn-primary">
-            Return to PulseVote Home
+            Return to My Vote Home
           </Link>
         </div>
       </div>

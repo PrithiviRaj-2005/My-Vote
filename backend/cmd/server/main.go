@@ -32,7 +32,7 @@ func main() {
 	}
 
 	log.Println("==================================================")
-	log.Println("   PULSEVOTE – Live Polling Tool Backend Server   ")
+	log.Println("     MY VOTE – Live Polling Tool Backend Server   ")
 	log.Println("==================================================")
 
 	// 2. Connect to MongoDB
@@ -47,15 +47,16 @@ func main() {
 		log.Println("[MongoDB] Disconnected cleanly.")
 	}()
 
-	// 3. Connect to Redis
+	// 3. Connect to Redis (Live Vote Counter & Pub/Sub)
 	rdb, err := config.ConnectRedis()
 	if err != nil {
-		log.Fatalf("[Redis Error] Could not connect to Redis: %v\nPlease ensure Redis is running or check your REDIS_URL in .env", err)
+		log.Printf("[Redis Notice] Redis unavailable (%v). Continuing with in-memory WebSocket broker.", err)
+	} else {
+		defer func() {
+			_ = rdb.Close()
+			log.Println("[Redis] Disconnected cleanly.")
+		}()
 	}
-	defer func() {
-		_ = rdb.Close()
-		log.Println("[Redis] Disconnected cleanly.")
-	}()
 
 	// 4. Initialize Gorilla WebSocket Hub
 	hub := ws.NewHub()
@@ -93,7 +94,7 @@ func main() {
 
 	// 11. Start HTTP Server in a goroutine
 	go func() {
-		log.Printf("[Server] PulseVote backend is running on http://localhost:%s", port)
+		log.Printf("[Server] My Vote backend is running on http://localhost:%s", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[Server Error] Failed to listen and serve: %v", err)
 		}
@@ -104,7 +105,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("[Server] Shutting down PulseVote server gracefully...")
+	log.Println("[Server] Shutting down My Vote server gracefully...")
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 
@@ -112,5 +113,5 @@ func main() {
 		log.Fatalf("[Server] Forced shutdown error: %v", err)
 	}
 
-	fmt.Println("[Server] PulseVote server exited cleanly.")
+	fmt.Println("[Server] My Vote server exited cleanly.")
 }

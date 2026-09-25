@@ -19,7 +19,7 @@ export default function Navbar() {
           <div className="brand-icon">
             <Activity size={22} strokeWidth={2.5} />
           </div>
-          <span>PulseVote</span>
+          <span>My Vote</span>
         </Link>
 
         <div className="nav-links">

@@ -21,23 +21,27 @@ func SetupRouter(
 	r := gin.Default()
 
 	// Configure CORS
-	allowedOrigin := os.Getenv("CORS_ORIGIN")
-	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:5173"
+	allowedOriginEnv := os.Getenv("CORS_ORIGIN")
+	if allowedOriginEnv == "" {
+		allowedOriginEnv = "*"
 	}
 
 	r.Use(func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		// Allow configured origin or allow localhost development ports
+
+		// Allow requests from browser origin (including any Vercel deployment and localhost)
 		if origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		} else if allowedOriginEnv != "" && allowedOriginEnv != "*" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOriginEnv)
 		} else {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Accept")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH, HEAD")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
@@ -51,7 +55,7 @@ func SetupRouter(
 	r.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
-			"service": "PulseVote Live Polling API",
+			"service": "My Vote Live Polling API",
 		})
 	})
 
@@ -78,14 +82,15 @@ func SetupRouter(
 		}
 
 		// Protected Poll routes (requires JWT)
+		// Note: Use consistent :shareCode wildcard to prevent Gin radix tree conflicts
 		pollsProtected := api.Group("/polls")
 		pollsProtected.Use(middleware.AuthMiddleware())
 		{
 			pollsProtected.POST("", pollCtrl.CreatePoll)
 			pollsProtected.GET("", pollCtrl.GetUserPolls)
-			pollsProtected.PUT("/:id", pollCtrl.UpdatePoll)
-			pollsProtected.DELETE("/:id", pollCtrl.DeletePoll)
-			pollsProtected.POST("/:id/close", pollCtrl.ClosePoll)
+			pollsProtected.PUT("/:shareCode", pollCtrl.UpdatePoll)
+			pollsProtected.DELETE("/:shareCode", pollCtrl.DeletePoll)
+			pollsProtected.POST("/:shareCode/close", pollCtrl.ClosePoll)
 		}
 	}
 

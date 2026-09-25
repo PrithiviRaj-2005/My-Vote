@@ -1,9 +1,13 @@
-// WebSocket connection helper for PulseVote
+// WebSocket connection helper for My Vote
 export function createPollWebSocket(shareCode, onMessage, onError, onClose) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin);
+  const cleanApiUrl = rawApiUrl.trim().replace(/\/+$/, '');
   
   // Convert http/https URL to ws/wss URL
-  let wsUrl = apiUrl.replace(/^http/, 'ws');
+  let wsUrl = cleanApiUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
+  if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+    wsUrl = window.location.protocol === 'https:' ? `wss://${cleanApiUrl}` : `ws://${cleanApiUrl}`;
+  }
   wsUrl = `${wsUrl}/ws/polls/${shareCode}`;
 
   let socket = null;

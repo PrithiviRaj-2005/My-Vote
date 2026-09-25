@@ -6,7 +6,7 @@ param (
 )
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "  PULSEVOTE – 16-Step Comprehensive Verification Suite     " -ForegroundColor Cyan
+Write-Host "  MY VOTE - 16-Step Comprehensive Verification Suite       " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 $Email = "tester_$((Get-Random -Minimum 1000 -Maximum 9999))@pulsevote.com"
@@ -16,9 +16,9 @@ $Name = "Alex Tester"
 # Helper for colored test reporting
 function Assert-Step($StepNum, $Desc, $Condition, $Details) {
     if ($Condition) {
-        Write-Host "[PASS] Step $StepNum: $Desc" -ForegroundColor Green
+        Write-Host "[PASS] Step ${StepNum}: $Desc" -ForegroundColor Green
     } else {
-        Write-Host "[FAIL] Step $StepNum: $Desc - $Details" -ForegroundColor Red
+        Write-Host "[FAIL] Step ${StepNum}: $Desc - $Details" -ForegroundColor Red
     }
 }
 
@@ -140,10 +140,9 @@ try {
 
     # 16. Delete Poll
     $delRes = Invoke-RestMethod -Uri "$BaseUrl/api/polls/$pollId" -Method Delete -Headers $headers
-    Assert-Step 16 "Delete Poll & Purge Cache" ($delRes.message -like "*successfully*") "Deletion failed"
-
-    Write-Host "`nAll 16 Verification Steps Executed Successfully!" -ForegroundColor Green
+    Assert-Step 16 "Delete Poll and Purge Cache" ($delRes.message -like "*successfully*") "Deletion failed"
+    Write-Host "All 16 Verification Steps Executed Successfully!" -ForegroundColor Green
 } catch {
-    Write-Host "`nError during test execution: $_" -ForegroundColor Yellow
+    Write-Host "Error during test execution: $($_.Exception.Message)" -ForegroundColor Yellow
     Write-Host "Please ensure the backend server is running on $BaseUrl before executing this script." -ForegroundColor DarkYellow
 }

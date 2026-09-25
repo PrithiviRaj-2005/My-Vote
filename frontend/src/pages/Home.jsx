@@ -61,7 +61,7 @@ export default function Home() {
             lineHeight: 1.15,
           }}
         >
-          PulseVote
+          My Vote
           <br />
           <span
             style={{

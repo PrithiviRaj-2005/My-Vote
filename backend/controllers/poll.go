@@ -144,6 +144,9 @@ func (ctrl *PollController) UpdatePoll(c *gin.Context) {
 	}
 
 	idParam := c.Param("id")
+	if idParam == "" {
+		idParam = c.Param("shareCode")
+	}
 	pollID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid poll ID format"})
@@ -169,7 +172,7 @@ func (ctrl *PollController) UpdatePoll(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedPoll)
 }
 
-// ClosePoll handles POST /api/polls/:id/close
+// ClosePoll handles POST /api/polls/:id/close or /api/polls/:shareCode/close
 func (ctrl *PollController) ClosePoll(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -178,6 +181,9 @@ func (ctrl *PollController) ClosePoll(c *gin.Context) {
 	}
 
 	idParam := c.Param("id")
+	if idParam == "" {
+		idParam = c.Param("shareCode")
+	}
 	pollID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid poll ID format"})
@@ -200,7 +206,7 @@ func (ctrl *PollController) ClosePoll(c *gin.Context) {
 	})
 }
 
-// DeletePoll handles DELETE /api/polls/:id
+// DeletePoll handles DELETE /api/polls/:id or /api/polls/:shareCode
 func (ctrl *PollController) DeletePoll(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -209,6 +215,9 @@ func (ctrl *PollController) DeletePoll(c *gin.Context) {
 	}
 
 	idParam := c.Param("id")
+	if idParam == "" {
+		idParam = c.Param("shareCode")
+	}
 	pollID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid poll ID format"})
