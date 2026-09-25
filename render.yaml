@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: pulsevote-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: GIN_MODE
+        value: release
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: pulsevote
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
